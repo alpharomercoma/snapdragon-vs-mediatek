@@ -2,12 +2,17 @@
 
 **Condition:** same POCO X8 Pro Max, same binaries/model as the 2026-07-13
 baseline (`../results/`), but with HyperOS **Ultimate performance mode ON and
-the phone charging** (user-set; not readable from Termux). One important
-methodological difference: this suite ran **back-to-back in ~17 minutes**
-(llama → NPU → matmul → trainstep → training → PyTorch retrain), whereas the
-July-13 numbers were captured piecemeal with natural cooldowns. The deltas
-below therefore mix two effects — the mode's clock boost *and* sustained-load
-thermals — and that mix is itself the finding.
+the phone charging** (user-set; not readable from Termux). Two methodological
+differences from the baseline: (1) this suite ran **back-to-back in ~17
+minutes** (llama → NPU → matmul → trainstep → training → PyTorch retrain),
+whereas the July-13 numbers were captured piecemeal with natural cooldowns;
+(2) the **screen was on for much of the run** (it later timed out, and was
+unlocked again near the end), so the display/compositor competed with the
+benchmarks for Mali cycles and added panel heat on top of charging heat.
+The GPU deltas below therefore mix three effects — the mode's clock boost,
+sustained-load thermals, and screen-on compositor contention — all but the
+first pushing downward. The CPU-side gains, measured earliest and coolest,
+are the cleanest read on what Ultimate mode itself buys.
 
 ## Results vs. the default-mode baseline
 
