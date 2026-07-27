@@ -1,0 +1,5 @@
+Could not open module param file '/sys/module/mali_kbase/parameters/large_page_conf'
+ggml_vulkan: Found 1 Vulkan devices:
+ggml_vulkan: 0 = Mali-G925-Immortalis MC11 (Mali-G925-Immortalis MC11) | uma: 1 | fp16: 1 | bf16: 0 | warp size: 16 | shared memory: 32768 | int dot: 1 | matrix cores: KHR_coopmat
+backend=Vulkan0 prec=f16
+size=2048  latency=376.94 ms  45.6 GFLOP/s  checksum=257772.426  finite

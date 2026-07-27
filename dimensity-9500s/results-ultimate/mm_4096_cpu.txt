@@ -1,0 +1,2 @@
+backend=CPU prec=f16
+size=4096  latency=3381.66 ms  40.6 GFLOP/s  checksum=2061565.451  finite

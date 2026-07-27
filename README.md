@@ -85,6 +85,17 @@ reachable:
   snapdragon-8-elite/scripts/run_device.sh    # push + run the full suite
   ```
 
+## Bonus experiment: performance mode vs. thermals
+
+The Dimensity phone was re-benchmarked with HyperOS **Ultimate mode + charging**
+([dimensity-9500s/results-ultimate/](dimensity-9500s/results-ultimate/SUMMARY.md)):
+CPU gains modestly (prefill 74 → 79 t/s, retrain steps ~25% faster when cool),
+but GPU throughput *regresses* under a 17-minute back-to-back suite (matmul
+67 → 45 GFLOP/s) — passive cooling throttles regardless of the mode toggle,
+and charging adds heat. The Snapdragon QRD reproduced its numbers within
+~4–7% across a comparable suite. For sustained on-device AI, thermal headroom
+matters more than peak-clock modes.
+
 ## Methodology & caveats (read before quoting numbers)
 
 - **Shared workloads:** NPU = 8 chained int8 FC layers, M=32 K=N=2048 (+ a

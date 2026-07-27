@@ -1,0 +1,5 @@
+target device: mtk-mdla
+compile time: 510.9 ms
+checksum byte: 255
+avg latency: 2.21 ms  best: 1.77 ms  (30 runs)
+throughput (best): 1216.5 GOPS int8 on mtk-mdla

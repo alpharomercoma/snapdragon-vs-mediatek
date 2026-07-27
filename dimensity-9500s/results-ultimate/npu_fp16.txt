@@ -1,0 +1,3 @@
+device: mtk-mdla
+out[0]=0.0500 out[1]=0.2700
+RESULT: FLOAT16 inference RUNS on mtk-mdla

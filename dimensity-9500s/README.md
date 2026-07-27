@@ -107,6 +107,17 @@ dimensity-9500s/
 Each folder has its own README with details and gotchas. Raw captured outputs
 live in [`results/`](results).
 
+## Bonus: does HyperOS "Ultimate mode" change the picture?
+
+Re-ran the entire suite on 2026-07-27 with **Ultimate performance mode ON +
+charging** (`results-ultimate/`, driver: `scripts/run_all_phone.sh`). Verdict:
+a real but modest **CPU** uplift (LLM prefill 74 → 79 t/s, PyTorch retrain
+1.3 → 0.94 s/step early-run), while every **GPU** number taken deep into the
+back-to-back suite lands *below* the July baseline (coopmat-f32 4096³ matmul
+67 → 45 GFLOP/s) — sustained-load thermals dominate the mode toggle, and
+charging adds heat. Correctness unchanged everywhere. Details in
+[`results-ultimate/SUMMARY.md`](results-ultimate/SUMMARY.md).
+
 ## Key findings
 
 - **NPU:** reachable and accelerating from user space (NeuroPilot 8.2.26). The
