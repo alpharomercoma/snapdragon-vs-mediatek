@@ -1,0 +1,4 @@
+backend=Vulkan0 prec=f16
+size=1024  latency=19.53 ms  110.0 GFLOP/s  checksum=32172.372  finite
+backend=CPU prec=f16
+size=1024  latency=29.63 ms  72.5 GFLOP/s  checksum=32145.372  finite

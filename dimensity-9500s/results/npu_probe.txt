@@ -1,0 +1,15 @@
+# NPU accessibility probe (Neuron runtime) — POCO X8 Pro Max / mt6991
+# Mon Jul 13 12:37:27 UTC 2026
+
+dlopen(libneuronusdk_adapter.mtk.so    ) -> OK
+dlopen(libneuron_adapter_mgvi.so       ) -> dlopen failed: library "libneuron_adapter_mgvi.so" not found
+dlopen(libneuron_adapter.so            ) -> dlopen failed: library "libneuron_adapter.so" not found
+dlopen(libneuron_runtime.so            ) -> dlopen failed: library "libneuron_runtime.so" not found
+dlopen(libneuron_runtime.8.so          ) -> dlopen failed: library "libneuron_runtime.8.so" not found
+Neuron_getVersion rc=0 -> NeuroPilot runtime 8.2.26
+Neuron_getL1MemorySizeKb rc=0 -> 7168 KB APU L1
+Neuron_getDeviceCount rc=0 -> 3 device(s)
+  device[0] = mtk-gpu
+  device[1] = mtk-dsp
+  device[2] = mtk-mdla
+RESULT: NPU RUNTIME ACCESSIBLE, 3 accelerator device(s) visible

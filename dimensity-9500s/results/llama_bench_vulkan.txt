@@ -1,0 +1,5 @@
+# llama-bench Vulkan GPU (Immortalis-G925 MC11) — Gemma-3 1B Q4_K_M
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+| gemma3 1B Q4_K - Medium        | 762.49 MiB |   999.89 M | Vulkan     |  99 |           pp128 |         38.67 ± 0.01 |
+| gemma3 1B Q4_K - Medium        | 762.49 MiB |   999.89 M | Vulkan     |  99 |            tg64 |         27.51 ± 0.10 |

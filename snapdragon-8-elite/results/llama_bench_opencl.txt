@@ -1,0 +1,20 @@
+# llama-bench, OpenCL (Adreno) build, -ngl 99
+# llama.cpp build 8e8681e, gemma-3-1b-it Q4_K_M, Adreno 830 via /vendor/lib64 driver
+# ggml_opencl: using kernels optimized for Adreno (GGML_OPENCL_USE_ADRENO_KERNELS)
+# NOTE: run WITHOUT LD_LIBRARY_PATH — binaries in /data/local/tmp resolve
+# libOpenCL.so via the unrestricted linker namespace; setting LD_LIBRARY_PATH
+# breaks the QC frontend's internal ICD discovery (returns 0 platforms).
+
+run 1:
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+| gemma3 1B Q4_K - Medium        | 762.49 MiB |   999.89 M | OpenCL     |  99 |           pp128 |        723.01 ± 4.25 |
+| gemma3 1B Q4_K - Medium        | 762.49 MiB |   999.89 M | OpenCL     |  99 |            tg64 |         41.47 ± 0.99 |
+
+run 2:
+| gemma3 1B Q4_K - Medium        | 762.49 MiB |   999.89 M | OpenCL     |  99 |           pp128 |       717.03 ± 10.00 |
+| gemma3 1B Q4_K - Medium        | 762.49 MiB |   999.89 M | OpenCL     |  99 |            tg64 |         42.49 ± 0.24 |
+
+=> prefill 717-723 tok/s (4.2x CPU), decode 41.5-42.5 tok/s (0.66x CPU)
+# The inverse of the Mali pattern: Adreno prefill crushes CPU, decode is
+# memory-bound and lands below the Oryon CPU.

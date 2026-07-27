@@ -1,0 +1,25 @@
+vocab=65 params=0.83M device=cpu threads=8
+step    1 loss 4.3242 lr 5.0e-05 elapsed    1.3s (1.30s/step)
+step   15 loss 3.2672 lr 7.5e-04 elapsed   19.8s (1.32s/step)
+step   30 loss 2.8254 lr 9.9e-04 elapsed   40.6s (1.35s/step)
+step   45 loss 2.6241 lr 9.2e-04 elapsed   61.5s (1.37s/step)
+step   60 loss 2.5727 lr 8.1e-04 elapsed   80.5s (1.34s/step)
+step   75 loss 2.5364 lr 6.6e-04 elapsed   99.3s (1.32s/step)
+step   90 loss 2.5391 lr 5.0e-04 elapsed  118.0s (1.31s/step)
+step  105 loss 2.5190 lr 3.4e-04 elapsed  136.7s (1.30s/step)
+step  120 loss 2.4750 lr 2.1e-04 elapsed  155.5s (1.30s/step)
+step  135 loss 2.5084 lr 1.3e-04 elapsed  174.2s (1.29s/step)
+step  150 loss 2.4750 lr 1.0e-04 elapsed  192.9s (1.29s/step)
+SAMPLE:
+
+ARNom kit ris
+
+Thay wil ses ouraladchadore tharar were t haure coutoud wise anorebre p ands d on y jesth sthetothess yotharress s s,
+E sth wis.
+
+
+I ler.
+LAngimyomath, theestherthe ice t med asoor s y I sere.
+Whand y ndighitharou  r h I my, the d inghiste e voumf moremese henepe fo mis ancab! thcot n
+TRAINING DEMO COMPLETE
+EXIT-RC-0

@@ -1,0 +1,26 @@
+# matmul_bench (ggml mul_mat, C = A^T B, f32 tensors) — Adreno 830 OpenCL vs CPU
+# port of gpu-matmul/vk_matmul_bench.c; WARMUP=3 ITERS=20; checksum vs CPU agrees
+
+--- SZ=1024 GPU ---
+backend=OpenCL prec=f16
+size=1024  latency=5.09 ms  421.7 GFLOP/s  checksum=32145.515  finite
+--- SZ=1024 CPU ---
+backend=CPU prec=f16
+size=1024  latency=27.39 ms  78.4 GFLOP/s  checksum=32145.372  finite
+--- SZ=2048 GPU ---
+backend=OpenCL prec=f16
+size=2048  latency=36.69 ms  468.2 GFLOP/s  checksum=257551.904  finite
+--- SZ=2048 CPU ---
+backend=CPU prec=f16
+size=2048  latency=227.35 ms  75.6 GFLOP/s  checksum=257551.647  finite
+--- SZ=4096 GPU ---
+backend=OpenCL prec=f16
+size=4096  latency=286.94 ms  479.0 GFLOP/s  checksum=2061574.114  finite
+--- SZ=4096 CPU ---
+backend=CPU prec=f16
+size=4096  latency=1973.40 ms  69.6 GFLOP/s  checksum=2061578.853  finite
+
+=> GPU matmul: 422-479 GFLOP/s = 5.4-6.9x CPU (ggml CPU backend, 4 threads default)
+   For comparison, the Mali Immortalis-G925 peaked at 67 GFLOP/s = 1.69x CPU
+   (and only with coopmat+f32-acc). The Adreno needs no special flags and
+   produces correct, finite results out of the box.

@@ -1,0 +1,22 @@
+# llama-bench, Vulkan build, Adreno 830 — BROKEN with the proprietary driver
+# (Qualcomm Adreno Vulkan Driver, Android 16 QRD image)
+
+ggml_vulkan: Found 1 Vulkan devices:
+ggml_vulkan: 0 = Adreno (TM) 830 (Qualcomm Technologies Inc. Adreno Vulkan Driver)
+  | uma: 1 | fp16: 1 | bf16: 0 | fp4: 0 | warp size: 64 | shared memory: 32768
+  | int dot: 0 | matrix cores: none
+
+| model                   |    size | backend | ngl | test | t/s          |
+| gemma3 1B Q4_K - Medium | 762 MiB | Vulkan  |  99 | pp16 | 16.81 ± 0.00 |
+
+then, entering decode:
+ggml_vulkan: Compute pipeline creation failed for mul_mat_vec_q4_k_f32_f32
+ggml_vulkan: vk::Device::createComputePipeline: ErrorUnknown
+libc++abi: terminating due to uncaught exception of type vk::SystemError
+Aborted
+
+=> Vulkan LLM inference on Adreno: prefill ran (slowly — no int dot, no
+   coopmat) and the driver failed to create the q4_K mul_mat_vec pipeline.
+   The exact inverse of the Mali finding (Vulkan good / OpenCL blocked):
+   on Snapdragon use OpenCL (Adreno-tuned kernels) for GPU inference.
+   f32-only compute (training, plain matmul) does work on this Vulkan driver.

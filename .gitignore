@@ -1,0 +1,49 @@
+# Dependencies fetched by scripts
+third_party/
+
+# Build outputs (snapdragon-8-elite/scripts/build_host.sh)
+snapdragon-8-elite/build/
+build-*/
+llama.cpp/
+
+# Models / large artifacts (fetched by scripts)
+*.gguf
+*.litertlm
+*.bin
+*.safetensors
+*.onnx
+*.aar
+
+# Compiled objects and probe binaries
+*.o
+*.so
+npu_probe
+npu_matmul_bench
+npu_fp16
+cltest
+cltest2
+qnn_probe
+qnn_probe2
+ort_npu_bench
+train_bench
+train_bench_*
+matmul_bench_*
+vk_train
+vk_train2
+vk_train_features
+vk_mm
+vk_mm_*
+vk_op
+vk_ts*
+
+# Datasets fetched at runtime
+tinyshakespeare.txt
+*.tgz
+
+# Python
+venv/
+__pycache__/
+
+# OS / editor
+.DS_Store
+*.swp

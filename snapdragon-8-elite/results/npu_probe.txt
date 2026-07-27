@@ -1,0 +1,24 @@
+# qnn_probe on SM8750 (shell context, /data/local/tmp)
+# QNN host libs: Maven Central com.qualcomm.qti:qnn-runtime 2.48.0 (public download)
+# LD_LIBRARY_PATH=/data/local/tmp/qnn
+
+=== transport / GPU libraries (on-device, vendor) ===
+dlopen(libcdsprpc.so               ) -> OK
+dlopen(/vendor/lib64/libOpenCL.so  ) -> OK
+
+=== QNN backends (host libs from Maven qnn-runtime 2.48) ===
+dlopen(libQnnHtp.so                ) -> OK
+  QnnInterface_getProviders rc=0 -> 1 provider(s)
+  provider[0] = HTP_QTI_AISW (backendId 6, core API 2.37.0, backend API 5.48.0)
+  backendGetApiVersion rc=0 (matches struct -> layout verified)
+  build id: v2.48.0.260626120635
+  backendCreate rc=0 -> BACKEND CREATED
+
+dlopen(libQnnGpu.so                ) -> OK
+  QnnInterface_getProviders rc=0 -> 1 provider(s)
+  provider[0] = GPU_QTI_AISW (backendId 4, core API 2.37.0, backend API 3.15.0)
+  backendGetApiVersion rc=0 (matches struct -> layout verified)
+  build id: v2.48.0.260626120635
+  backendCreate rc=0 -> BACKEND CREATED
+
+RESULT: QNN HTP (Hexagon NPU) RUNTIME ACCESSIBLE, backend initialized

@@ -1,0 +1,48 @@
+# Can the Adreno 830 train a model via ggml? (port of the POCO GPU-training test)
+# train_bench.c = vk_train.c (2-layer MLP, AdamW, MSE, 60 epochs) with
+# registry-based backend selection.
+
+## Attempt 1: ggml OpenCL backend (the fast inference path)
+
+Blocked in stages, each one instructive:
+
+1) ggml-opt zeroes optimizer state via ggml_backend_tensor_memset —
+   the OpenCL backend had NO memset_tensor implementation:
+     GGML_ASSERT(buf->iface.memset_tensor != NULL && "memset not implemented
+     by backend buffer") failed
+   -> fixed locally with a ~20-line clEnqueueFillBuffer patch
+      (patches/opencl-memset-tensor.patch), analogous in spirit to the
+      POCO repo's backward-on-gpu.patch.
+
+2) With memset fixed, training starts ("epoch 0001/0060") and then hits the
+   real wall: ggml-opt statically allocates the loss on scheduler backend 0
+   (the GPU), but:
+     pre-allocated tensor (loss_sum_squared_error) in a buffer (OpenCL)
+     that cannot run the operation (SUM)
+
+3) test-backend-ops support (definitive kernel inventory for training ops
+   on the OpenCL backend):
+     OPT_STEP_ADAMW(type=f32,...): NOT SUPPORTED
+     SUM(type=f32,...):            NOT SUPPORTED
+   (mul_mat & inference ops: supported — this backend is inference-focused.)
+
+VERDICT (OpenCL): GPU training is kernel-blocked. The blockers are shallow —
+missing SUM / OPT_STEP_ADAMW kernels, not an architectural limit. Compare
+POCO/Mali where the Vulkan backend HAD training kernels but coopmat
+miscomputed them and OUT_PROD had no kernel.
+
+## Attempt 2: ggml Vulkan backend (training kernels exist upstream)
+
+ggml_vulkan: 0 = Adreno (TM) 830 (Qualcomm Adreno Vulkan Driver)
+  | uma: 1 | fp16: 1 | bf16: 0 | warp size: 64 | shared memory: 32768
+  | int dot: 0 | matrix cores: none      <- no coopmat on Adreno, no int8 dot
+
+Vulkan INFERENCE on Adreno is broken with the proprietary driver:
+  llama-bench pp16 crawled at ~17 t/s, then crashed:
+    ggml_vulkan: Compute pipeline creation failed for mul_mat_vec_q4_k_f32_f32
+    vk::Device::createComputePipeline: ErrorUnknown
+(the reverse of Mali, where Vulkan was the working GPU path and OpenCL was
+blocked; on Snapdragon, OpenCL is the working path and Vulkan is broken)
+
+Vulkan TRAINING (pure f32 kernels, no quantized pipelines): see
+gpu_training_vulkan.txt.

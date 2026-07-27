@@ -1,0 +1,47 @@
+# On-device TRAINING throughput — industry units — POCO X8 Pro Max / mt6991
+# Measured 2026-07-13. One transformer-layer training step (fwd + bwd matmuls:
+# QKV, O-proj, FFN-up, FFN-down + their dX/dW), the standard 72*D^2*T = 6*N*T
+# training-FLOP model. coopmat + f32 accumulation. Full-f32, batch*seq = 2048 tokens.
+
+## Measured achieved throughput (GFLOP/s)
+   config              D=1024      D=2048
+   CPU (8 threads)      39.3        36.9
+   GPU coopmat f32      42.9        50.3
+   GPU speedup          1.09x       1.36x
+
+# CRITICAL: the 1.5-1.7x pure-matmul GPU lever does NOT carry to training. The
+# backward's dX/dW need materialized transposes (cont(transpose)), which are
+# memory-bandwidth-bound; CPU and GPU share the same LPDDR5X, so the GPU's compute
+# edge is largely cancelled. GPU training ~= CPU training on this phone (1.1-1.4x).
+# (fp16 could ~2x these but is unstable on this Mali: no bf16, f16 acc overflows.)
+
+## What that means in tokens/sec  (train tok/s = achieved_FLOPs / (6 * N_params))
+# Using ~45 GFLOP/s achievable (GPU, f32):
+   Model              Params   Adam mem (16 B/p)  Fits to train?     Train tok/s
+   GPT-2 small        124 M    2.0 GB             yes (Adam)         ~60
+   GPT-2 medium       350 M    5.6 GB             no Adam / yes SGD  ~21
+   ~1 B               1.0 B    16 GB              no                 ~7.5
+
+## Largest model we can TRAIN (memory ceiling; ~4 GB usable under load)
+   optimizer   bytes/param   max params (states only)   realistic w/ activations
+   Adam (f32)  16            ~250 M                      ~120-150 M
+   SGD  (f32)  8             ~500 M                      ~300-350 M
+   LoRA        ~0 (base frozen, tiny adapters)           base up to inference limit
+
+## Wall-clock for a realistic small fine-tune (GPT-2 124 M, ~60 tok/s)
+   100 k tokens  -> ~28 min
+   1 M tokens    -> ~4.6 hours (overnight)
+   full pretraining (10 B+ tokens) -> months. NOT feasible.
+
+## Industry context
+   1x NVIDIA H100 (~400 TFLOP/s effective) trains a 124 M model at ~540,000 tok/s.
+   This phone (~60 tok/s) is ~9,000x slower. So: on-device is for small fine-tunes
+   / LoRA / experiments (overnight jobs), never pretraining.
+
+## Verdict
+   We CAN train on this phone, up to ~120-150 M params (Adam) or ~350 M (SGD), at
+   ~40-60 training tok/s. But the GPU is NOT a meaningful speedup over the CPU for
+   training here (~1.1-1.4x) — the matmul lever is cancelled by transpose-bound,
+   memory-bound backward on shared RAM. A native OUT_PROD Vulkan coopmat kernel
+   (contracting without materializing transposes) is what would actually make GPU
+   training fast; that's the upstream fix worth doing.

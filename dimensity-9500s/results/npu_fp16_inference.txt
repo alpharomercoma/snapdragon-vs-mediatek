@@ -1,0 +1,6 @@
+# FP16 inference on the MediaTek MDLA (NPU 890) — POCO X8 Pro Max / mt6991
+# Confirms the NPU does float16 inference, not only int8. MDLA 5.5, 4 cores, 7168 KB L1.
+
+device: mtk-mdla
+out[0]=0.0500 out[1]=0.2700
+RESULT: FLOAT16 inference RUNS on mtk-mdla

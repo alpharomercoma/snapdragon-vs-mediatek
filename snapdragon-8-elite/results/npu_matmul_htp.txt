@@ -1,0 +1,35 @@
+# ort_npu_bench fc8_int8.onnx — 8 chained FC layers, int8 QDQ, M=32 K=N=2048
+# (same workload shape as the MediaTek MDLA bench: npu_matmul_bench.c)
+# ONNX Runtime 1.27.0 QNN EP + QNN 2.42.0 (matched pair from Maven Central)
+# htp_performance_mode=burst, CPU-EP fallback DISABLED (all layers on HTP or fail)
+# Hexagon HTP V79 skel loaded from /data/local/tmp/ort via ADSP_LIBRARY_PATH
+
+=== Hexagon HTP (QNN EP) ===
+session created (compile+load): 509.0 ms  [QNN HTP]
+checksum byte: 0
+avg latency: 0.50 ms  best: 0.50 ms  (30 runs)
+throughput (best): 4307.1 GOPS int8 on Hexagon HTP (QNN)
+
+=== same model, ORT CPU EP (reference / sanity check) ===
+session created (compile+load): 39.9 ms  [CPU EP]
+checksum byte: 0                          <- identical output byte
+avg latency: 2.34 ms  best: 2.20 ms  (30 runs)
+throughput (best): 977.9 GOPS int8 on CPU EP
+
+=> HTP = 4.4x the (already-strong) Oryon CPU on the same quantized graph.
+=> ~4.3 TOPS int8 sustained from a hand-built single-stream graph. This is a
+   FLOOR, not the chip's ceiling (Qualcomm rates the Hexagon at ~tens of TOPS;
+   saturating it needs deeper pipelines / larger batches).
+
+# fp16 capability test (single FC 32x2048x2048, mirrors npu_fp16_test.c)
+=== fc_fp16.onnx on Hexagon HTP ===
+session created (compile+load): 441.5 ms  [QNN HTP]
+checksum byte: 172
+avg latency: 0.25 ms  best: 0.25 ms  (30 runs)
+throughput (best): 1089.4 GOPS fp16 on Hexagon HTP (QNN)
+
+=> fp16 inference also runs on the HTP (~1.1 TFLOP/s on a single thin layer).
+
+# Note: libQnnHtpPrepare.so 2.42/2.48 has a broken exit-time destructor
+# (scudo double-free in GraphPrepare::~GraphPrepare via __cxa_finalize) —
+# harmless to results; the bench uses _exit() to skip it.

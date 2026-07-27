@@ -1,0 +1,42 @@
+# Qualcomm Device Cloud device sa726209, accessed via adb over SSH tunnel
+# Date: 2026-07-27
+
+adb devices -l:
+  2a38935c  device product:sun model:Sun_for_arm64 device:sun
+
+getprop:
+  ro.product.model        = Sun for arm64        (Qualcomm QRD reference device)
+  ro.product.device       = sun
+  ro.board.platform       = sun
+  ro.soc.model            = SM8750               (Snapdragon 8 Elite)
+  ro.soc.manufacturer     = QTI
+  ro.build.version.release= 16   (SDK 36)
+  ro.hardware             = qcom
+  ro.vendor.qti.soc_name  = sun
+  kernel: 6.6.118-android15-8-maybe-dirty-4k aarch64
+
+CPU: 8x Qualcomm Oryon (implementer 0x51, part 0x001)
+  cpu0-5: max 2,784,000 kHz  (6x Oryon Performance @ 2.78 GHz)
+  cpu6-7: max 4,089,600 kHz  (2x Oryon Prime @ 4.09 GHz)
+  Features: fp asimd aes sha2 crc32 atomics fphp asimdhp asimdrdm jscvt fcma
+            lrcpc dcpop sha3 sm3 sm4 asimddp sha512 asimdfhm dit uscat ilrcpc
+            flagm ssbs sb paca pacg dcpodp flagm2 frint i8mm bf16 rng bti ecv afp rpres
+  (dotprod + i8mm + bf16; no SVE)
+
+RAM: MemTotal 15,519,768 kB (16 GB)
+
+GPU: Adreno 830 (/sys/class/kgsl/kgsl-3d0/gpu_model = Adreno830v2)
+  max_gpuclk = 900,000,000 Hz
+  OpenCL 3.0 driver: QUALCOMM build 0800.70, Compiler E031.47.18.47
+  12 compute units, 7.4 GiB visible global mem, FP16 + dot product + subgroups
+
+NPU: Hexagon (compute DSP, HTP arch V79)
+  /dev/fastrpc-cdsp present; vendor.cdsprpcd service running
+  fastrpc_shell_3 + libQnnLpai* (ADSP) on device
+  QNN host libraries NOT preinstalled (pushed from Maven qnn-runtime AAR)
+
+Public vendor libraries (/vendor/etc/public.libraries.txt):
+  libqti-perfd-client.so, libadsprpc.so, libcdsprpc.so, libsdsprpc.so,
+  libfastcvopt.so, libOpenCL.so
+  -> OpenCL and FastRPC (DSP transport) are PUBLIC on this device,
+     unlike the Mali/MediaTek situation where OpenCL was namespace-blocked.

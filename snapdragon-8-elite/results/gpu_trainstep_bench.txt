@@ -1,0 +1,28 @@
+# trainstep_bench — transformer-layer TRAINING-STEP matmul throughput
+# (port of dimensity-9500s/gpu-matmul/vk_trainstep_bench.c)
+# One layer's fwd + backward matmuls: QKV, O, FFN-up, FFN-down, each fwd+dX+dW
+# = 72*D^2*T FLOPs. D=1024, T=2048, f32 tensors, WARMUP=2 ITERS=8.
+
+== GPU, OpenCL (Adreno 830) ==
+backend=OpenCL prec=f16  D=1024 T=2048
+step(1 layer) = 383.4 ms   403.3 GFLOP/s   5341 tok/s (1-layer)
+
+== GPU, Vulkan (same silicon) ==
+backend=Vulkan0 prec=f16  D=1024 T=2048
+step(1 layer) = 1361.1 ms   113.6 GFLOP/s   1505 tok/s (1-layer)
+
+== CPU (8x Oryon, ggml default threads) ==
+backend=CPU prec=f16  D=1024 T=2048
+step(1 layer) = 2473.8 ms   62.5 GFLOP/s   828 tok/s (1-layer)
+
+=> Training-step matmuls on the Adreno via OpenCL: 403 GFLOP/s = 6.5x CPU.
+   On the Mali G925 the same experiment gave ~50 (GPU) vs ~37 (CPU) GFLOP/s —
+   only 1.1-1.4x, because the transpose-bound backward cancelled the matmul
+   lever. The Adreno keeps its matmul advantage through the backward
+   (its OpenCL cont/transpose path doesn't collapse the win).
+   Vulkan on the same GPU reaches only 113.6 GFLOP/s — consistent with the
+   rest of this investigation: on Snapdragon, OpenCL is the fast compute API.
+
+   Rough training capacity from the 6*N*T rule at 403 GFLOP/s:
+   ~540 train tok/s for a 124M-param model (vs ~60 tok/s measured on the
+   Dimensity phone) — before memory/optimizer overheads, so treat as a ceiling.

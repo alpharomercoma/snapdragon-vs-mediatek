@@ -1,0 +1,37 @@
+diff --git a/ggml/src/ggml-opencl/ggml-opencl.cpp b/ggml/src/ggml-opencl/ggml-opencl.cpp
+index a05d18e..f5231dc 100644
+--- a/ggml/src/ggml-opencl/ggml-opencl.cpp
++++ b/ggml/src/ggml-opencl/ggml-opencl.cpp
+@@ -10619,11 +10619,31 @@ static void ggml_backend_opencl_buffer_reset(ggml_backend_buffer_t buffer) {
+     ctx->reset();
+ }
+ 
++static void ggml_backend_opencl_buffer_memset_tensor(ggml_backend_buffer_t buffer, ggml_tensor * tensor, uint8_t value, size_t offset, size_t size) {
++    // needed by ggml-opt (zeroing gradients / optimizer momenta); plain
++    // fill on the tensor's cl_mem range, mirroring buffer_clear above.
++    // Quantized tensors in SOA layout are split across sub-buffers and are
++    // not supported here — training tensors are F32/F16.
++    GGML_ASSERT(!ggml_is_quantized(tensor->type) && "memset_tensor on quantized tensors not supported");
++    ggml_backend_opencl_device_context * dev_ctx = (ggml_backend_opencl_device_context *) buffer->buft->device->context;
++    ggml_backend_opencl_context * backend_ctx = dev_ctx->backend_ctx;
++    cl_command_queue queue = backend_ctx->queue;
++
++    ggml_tensor_extra_cl * extra = (ggml_tensor_extra_cl *) tensor->extra;
++    GGML_ASSERT(extra && "tensor has no OpenCL extra");
++    if (size == 0) {
++        return;
++    }
++    CL_CHECK(clEnqueueFillBuffer(queue, extra->data_device, &value, sizeof(value),
++                                 extra->offset + tensor->view_offs + offset, size, 0, NULL, NULL));
++    CL_CHECK(clFinish(queue));
++}
++
+ static ggml_backend_buffer_i ggml_backend_opencl_buffer_interface = {
+     /* .free_buffer     = */ ggml_backend_opencl_buffer_free_buffer,
+     /* .get_base        = */ ggml_backend_opencl_buffer_get_base,
+     /* .init_tensor     = */ ggml_backend_opencl_buffer_init_tensor,
+-    /* .memset_tensor   = */ NULL,
++    /* .memset_tensor   = */ ggml_backend_opencl_buffer_memset_tensor,
+     /* .set_tensor      = */ ggml_backend_opencl_buffer_set_tensor,
+     /* .get_tensor      = */ ggml_backend_opencl_buffer_get_tensor,
+     /* .set_tensor_2d   = */ NULL,

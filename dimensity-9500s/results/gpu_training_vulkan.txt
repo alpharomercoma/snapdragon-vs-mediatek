@@ -1,0 +1,22 @@
+# GPU training on Mali Immortalis-G925 via Vulkan (ggml) — POCO X8 Pro Max
+# 2-layer MLP (~385 params), AdamW, MSE fit of sin(2*pi*x), 60 epochs
+# Baseline MSE (predict 0) = 0.50; lower = learning.
+
+## Default Vulkan (KHR_coopmat matrix cores ENABLED): BROKEN
+   loss = nan from epoch 1 (training kernels miscompute on the coopmat path)
+
+## Vulkan with GGML_VK_DISABLE_COOPMAT=1: WORKS
+   epoch 0001/0060:  loss=0.44645±0.27416
+   epoch 0015/0060:  loss=0.25163±0.08828
+   epoch 0030/0060:  loss=0.47281±0.01108
+   epoch 0045/0060:  loss=0.38287±0.16000
+   epoch 0060/0060:  loss=0.33063±0.00725
+
+## CPU (same program, reference): WORKS
+   epoch 0001/0060:  loss=0.34625±0.21448
+   epoch 0015/0060:  loss=0.13441±0.06937
+   epoch 0030/0060:  loss=0.20942±0.00264
+   epoch 0045/0060:  loss=0.17429±0.07303
+   epoch 0060/0060:  loss=0.13867±0.06492
+
+# Device: Mali-G925-Immortalis MC11 

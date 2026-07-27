@@ -1,0 +1,7 @@
+# NPU int8 matmul benchmark on MDLA — POCO X8 Pro Max / mt6991
+
+target device: mtk-mdla
+compile time: 532.8 ms
+checksum byte: 255
+avg latency: 3.85 ms  best: 1.95 ms  (30 runs)
+throughput (best): 1102.8 GOPS int8 on mtk-mdla

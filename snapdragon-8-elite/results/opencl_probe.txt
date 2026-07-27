@@ -1,0 +1,20 @@
+# cltest on SM8750 — OpenCL reachability from a plain shell binary
+# (On the POCO/Mali this probe FAILED: driver outside the app linker namespace.)
+
+--- /vendor/lib64/libOpenCL.so (entry: clGetPlatformIDs) ---
+dlopen -> OK
+clGetPlatformIDs(0,NULL,&n) rc=0 nplatforms=1
+clGetDeviceIDs rc=0 ndevices=1
+  device[0]: QUALCOMM Adreno(TM) 830 | OpenCL 3.0 Adreno(TM) 830 | 12 CUs | 7.4 GiB global mem
+RESULT: OpenCL ACCESSIBLE via /vendor/lib64/libOpenCL.so
+
+--- /vendor/lib64/libOpenCL_adreno.so (entry: clIcdGetPlatformIDsKHR) ---
+dlopen -> OK
+clIcdGetPlatformIDsKHR(0,NULL,&n) rc=0 nplatforms=1
+(ICD entry only; full API lives in the libOpenCL.so frontend)
+
+=> OpenCL is fully usable from user code on this device. libOpenCL.so is in
+   /vendor/etc/public.libraries.txt, so even untrusted apps get it.
+   Gotcha: do NOT set LD_LIBRARY_PATH when running OpenCL binaries from
+   /data/local/tmp — it breaks the frontend's internal ICD dispatch
+   (0 platforms / deadlock with a Khronos ICD loader in the path).

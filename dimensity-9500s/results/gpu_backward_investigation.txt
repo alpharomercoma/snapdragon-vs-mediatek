@@ -1,0 +1,50 @@
+# Can GPU training be FULLY sped up on the Mali G925? — backward-pass investigation
+# POCO X8 Pro Max / mt6991, ggml @ ad8d821. Captured 2026-07-13.
+
+## The real blocker (not coopmat): the backward pass runs on CPU
+
+ggml computes EVERY gradient of a matmul via `ggml_out_prod` (see ggml.c,
+ggml_compute_backward, case GGML_OP_MUL_MAT — both src0 and src1 grads use it).
+`OUT_PROD` has NO Vulkan kernel. Verified three independent ways:
+
+1. Binary: `grep GGML_OP_OUT_PROD ggml-vulkan.cpp` -> nothing.
+2. Live scheduler (GGML_SCHED_DEBUG=2) during training:
+     node #18 (OUT_PROD)  grad for node_0   [CPU]
+     node #20 (OUT_PROD)  grad for node_5   [CPU]
+     node #24 (OUT_PROD)  grad for node_1   [CPU]
+   -> every gradient forced to CPU, with GPU->CPU->GPU copies each step.
+3. Unit test (vk_outprod_test.c) on Vulkan: ggml_out_prod returns ALL ZEROS
+   (no kernel), while mul_mat(cont(T a), cont(T b)) returns the correct values.
+
+=> The coopmat/Vulkan matmul lever alone can only accelerate the FORWARD pass.
+   The backward (majority of training FLOPs) is CPU-locked. Confirmed.
+
+## The breakthrough: OUT_PROD is just a matmul — reroute it onto the GPU
+
+Identity (bit-exact on CPU; correct on Vulkan):
+    out_prod(a,b) == mul_mat(cont(transpose(a)), cont(transpose(b)))
+
+Patching ggml.c's mul_mat backward to use this (backward-on-gpu.patch) moves the
+ENTIRE backward onto the GPU. GGML_SCHED_DEBUG after the patch:
+    node #22 (MUL_MAT)  grad for node_0  [Vulkan0]
+    node #25 (MUL_MAT)  grad for node_5  [Vulkan0]
+    node #33 (MUL_MAT)  grad for node_1  [Vulkan0]
+  -> 5 MUL_MAT nodes on Vulkan (was 2 forward-only); zero CPU OUT_PROD splits.
+Training runs and loss decreases. So full-GPU training IS achievable with a
+~10-line ggml source change (or an upstream OUT_PROD Vulkan shader).
+
+## Remaining caveats (critical honesty)
+- Precision: the scalar (coopmat-off) Vulkan matmul converges worse than CPU on
+  this toy (0.39 vs 0.00004 even with a correct CPU backward) — a precision gap,
+  not a gradient bug. coopmat + f32 accumulation would help.
+- coopmat still NaNs on thin/degenerate matmul shapes (e.g. output dim = 1), so
+  the fast path needs those shapes handled (pad, or fix the Mali coopmat kernel).
+- Speed only materializes at matmul dims >= ~2048 (real LLM scale), not toys.
+
+## Verdict
+"Fully speed up training on the GPU" is NOT reachable with a runtime flag today —
+the backward is CPU-locked because OUT_PROD has no Vulkan kernel. It IS reachable
+with a source change (reroute backward through mul_mat / add an OUT_PROD Vulkan
+shader); this repo demonstrates the reroute moving the whole backward onto the
+GPU. Full-speed then depends on the coopmat-f32 path (1.5-1.7x at >=2048) also
+covering these shapes, which needs the thin-matmul coopmat bug fixed upstream.

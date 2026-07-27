@@ -1,0 +1,22 @@
+# Route ggml's mul_mat backward through mul_mat (GPU) instead of out_prod (CPU-only).
+# Identity used (verified bit-exact on CPU and correct on Vulkan by vk_outprod_test.c):
+#     out_prod(a,b) == mul_mat(cont(transpose(a)), cont(transpose(b)))
+# Apply to ggml/src/ggml.c, in ggml_compute_backward's  case GGML_OP_MUL_MAT.
+# Effect: the entire training backward pass runs on the Vulkan GPU (verified via
+# GGML_SCHED_DEBUG — MUL_MAT nodes move from CPU/OUT_PROD to Vulkan0).
+--- a/ggml/src/ggml.c
++++ b/ggml/src/ggml.c
+@@ (case GGML_OP_MUL_MAT, src0 grad) @@
+                 struct ggml_tensor * tmp =
+-                    ggml_out_prod(ctx, // [n,m,qq,rr]
+-                        src1,          // [n,p,qq,rr]
+-                        grad);         // [m,p,qq,rr]
++                    ggml_mul_mat(ctx, ggml_cont(ctx, ggml_transpose(ctx, src1)),
++                                      ggml_cont(ctx, ggml_transpose(ctx, grad)));
+@@ (case GGML_OP_MUL_MAT, src1 grad) @@
+-                        ggml_out_prod(ctx,      // [n,p,qq,rr]
+-                            src0,               // [n,m,q1,r1]
+-                            ggml_transpose(ctx, // [p,m,qq,rr]
+-                                grad)));        // [m,p,qq,rr]
++                        ggml_mul_mat(ctx, ggml_cont(ctx, ggml_transpose(ctx, src0)),
++                                          ggml_cont(ctx, grad)));

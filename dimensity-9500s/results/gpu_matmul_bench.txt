@@ -1,0 +1,22 @@
+# GPU matmul throughput on Mali Immortalis-G925 (Vulkan/ggml) vs CPU — POCO X8 Pro Max
+# C = A^T B, F32 inputs, GFLOP/s (higher = better). Captured 2026-07-13.
+#
+#  size | CPU  | coopmat f16 | coopmat f32 | no-coopmat |  best GPU vs CPU
+#  -----+------+-------------+-------------+------------+-----------------
+#  1024 | 43.2 |   37.2      |   37.0      |   29.0     |  0.86x (GPU loses; too small)
+#  2048 | 41.5 |   65.1      |   63.0      |   49.4     |  1.52x  (coopmat f32)
+#  4096 | 40.0 |   27.1      |   67.4      |   51.4     |  1.69x  (coopmat f32)
+#
+# Findings:
+# 1. coopmat + f32 accumulation is the best config: 1.5-1.7x over CPU at >=2048,
+#    numerically correct (no overflow). Enable coopmat, set GGML_PREC_F32.
+# 2. coopmat + f16 accumulation is strictly worse on this Mali: erratic speed
+#    (great at 2048, 2.5x SLOWER than f32 at 4096) and unsafe for F16/quant inputs
+#    (dot products > 65504 overflow -> NaN, per llama.cpp issue #18969).
+# 3. GPU only wins at matmul dims >= ~2048; for small matmuls CPU wins (dispatch
+#    overhead + strong ARM NEON/SVE/i8mm).
+# 4. TRAINING CAVEAT: the coopmat *backward* mul_mat (transposed/non-contiguous
+#    operand) produces NaN on this Mali -> training must run with
+#    GGML_VK_DISABLE_COOPMAT=1, i.e. the no-coopmat column (still 1.2-1.3x CPU at
+#    >=2048). The fast coopmat path is only usable for the forward/inference matmul
+#    until the upstream backward bug is fixed.
